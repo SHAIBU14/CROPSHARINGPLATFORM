@@ -1,0 +1,138 @@
+[
+  {
+    "_id": "6a58a3133ac9d11ed4bc8726",
+    "buyerId": "16",
+    "sellerId": "13",
+    "cropId": "1784046371957",
+    "quantity": {
+      "amount": 1,
+      "unit": "kg"
+    },
+    "totalAmount": 60,
+    "paymentMethod": "ONLINE",
+    "transactionId": "1234567890097",
+    "paymentApp": "PhonePe",
+    "paymentDate": "2026-07-16T09:22:00.000Z",
+    "notes": "",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-16T09:23:31.375Z",
+    "updatedAt": "2026-07-16T09:23:31.375Z"
+  },
+  {
+    "_id": "6a567c4b03eb7492e5f34568",
+    "buyerId": "13",
+    "sellerId": "13",
+    "cropId": "1784052652335",
+    "quantity": {
+      "amount": 1,
+      "unit": "bunches"
+    },
+    "totalAmount": 60,
+    "paymentMethod": "ONLINE",
+    "transactionId": "123456789009",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-14T18:12:00.000Z",
+    "notes": "",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T18:13:31.352Z",
+    "updatedAt": "2026-07-14T18:13:31.352Z"
+  },
+  {
+    "_id": "6a56460cfefb727a55af2cd9",
+    "buyerId": "13",
+    "sellerId": "9",
+    "cropId": "1783865273430",
+    "quantity": {
+      "amount": 1,
+      "unit": "kg"
+    },
+    "totalAmount": 50,
+    "paymentMethod": "ONLINE",
+    "transactionId": "123456789012",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-14T14:21:00.000Z",
+    "notes": "good",
+    "screenshot": {
+      "url": "C:\\AD1\\AD_Project1\\server\\uploads\\payments\\1784038924211-458613599-pngtree-green-leaf-circle-border-vector-png-image_16242551.png",
+      "publicId": "1784038924211-458613599-pngtree-green-leaf-circle-border-vector-png-image_16242551.png"
+    },
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T14:22:04.316Z",
+    "updatedAt": "2026-07-14T14:22:04.316Z"
+  },
+  {
+    "_id": "6a56328ca960aa7230e6d9dc",
+    "buyerId": "6",
+    "sellerId": "6",
+    "cropId": "1783865273430",
+    "quantity": {
+      "amount": 2,
+      "unit": "kg"
+    },
+    "totalAmount": 100,
+    "paymentMethod": "ONLINE",
+    "transactionId": "demo-transaction-1784033932243",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-12T00:00:00.000Z",
+    "notes": "demo payment",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T12:58:52.329Z",
+    "updatedAt": "2026-07-14T12:58:52.329Z"
+  },
+  {
+    "_id": "6a56313c785f19d401f32e86",
+    "buyerId": "6",
+    "sellerId": "6",
+    "cropId": "1783865273430",
+    "quantity": {
+      "amount": 2,
+      "unit": "kg"
+    },
+    "totalAmount": 100,
+    "paymentMethod": "ONLINE",
+    "transactionId": "demo-transaction-1784033596724",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-12T00:00:00.000Z",
+    "notes": "demo payment",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T12:53:16.790Z",
+    "updatedAt": "2026-07-14T12:53:16.790Z"
+  },
+  {
+    "_id": "6a562e356e30593338da1e2e",
+    "buyerId": "6",
+    "sellerId": "6",
+    "cropId": "1783865273430",
+    "quantity": {
+      "amount": 2,
+      "unit": "kg"
+    },
+    "totalAmount": 100,
+    "paymentMethod": "ONLINE",
+    "transactionId": "demo-transaction-1784032821287",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-12T00:00:00.000Z",
+    "notes": "demo payment",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T12:40:21.346Z",
+    "updatedAt": "2026-07-14T12:40:21.346Z"
+  },
+  {
+    "_id": "6a562d91ed75d4eccd8c88a9",
+    "sellerId": "6",
+    "cropId": "1783865273430",
+    "quantity": {
+      "amount": 2,
+      "unit": "kg"
+    },
+    "totalAmount": 100,
+    "paymentMethod": "ONLINE",
+    "transactionId": "demo-transaction-123",
+    "paymentApp": "Google Pay",
+    "paymentDate": "2026-07-12T00:00:00.000Z",
+    "notes": "demo payment",
+    "paymentStatus": "Pending Verification",
+    "createdAt": "2026-07-14T12:37:37.907Z",
+    "updatedAt": "2026-07-14T12:37:37.907Z"
+  }
+]
