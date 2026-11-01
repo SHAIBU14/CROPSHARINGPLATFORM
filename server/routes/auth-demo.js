@@ -54,9 +54,13 @@ const sanitizeUser = (user) => ({
   lastName: user.lastName,
   email: user.email,
   profileImage: user.profileImage || '',
+  phoneNumber: user.phoneNumber || '',
+  location: user.location || null,
+  bio: user.bio || '',
   gardenExperience: user.gardenExperience || 'beginner',
   isVerified: user.isVerified ?? true,
   isAdmin: user.isAdmin ?? false,
+  firebaseUid: user.firebaseUid || '',
   createdAt: user.createdAt
 });
 

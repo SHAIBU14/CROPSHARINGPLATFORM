@@ -1,16 +1,45 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/User');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
+const USERS_FILE = path.join(__dirname, '../data/demo-users.json');
+
+const loadDemoUsers = () => {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    }
+  } catch (error) {
+    console.warn('Could not load demo users file:', error.message);
+  }
+  return [];
+};
+
+const saveDemoUsers = (users) => {
+  try {
+    fs.mkdirSync(path.dirname(USERS_FILE), { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  } catch (error) {
+    console.warn('Could not save demo users file:', error.message);
+  }
+};
 
 // @route   GET /api/users/profile
 // @desc    Get user profile
 // @access  Private
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    res.json({ user: req.user.getPublicProfile() });
+    let user = req.user.getPublicProfile ? req.user.getPublicProfile() : req.user;
+    if (user && user.password) {
+      const { password, ...safeUser } = user;
+      user = safeUser;
+    }
+    res.json({ user });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -39,8 +68,8 @@ router.put('/profile', [
     }
 
     const allowedUpdates = [
-      'firstName', 'lastName', 'bio', 'gardenExperience', 
-      'location', 'preferences'
+      'firstName', 'lastName', 'username', 'phoneNumber', 'profileImage',
+      'bio', 'gardenExperience', 'location', 'preferences'
     ];
     
     const updates = {};
@@ -50,15 +79,50 @@ router.put('/profile', [
       }
     });
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updates,
-      { new: true, runValidators: true }
-    );
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      try {
+        const user = await User.findByIdAndUpdate(
+          req.user._id,
+          updates,
+          { new: true, runValidators: true }
+        );
+        if (user) {
+          return res.json({ 
+            message: 'Profile updated successfully',
+            user: user.getPublicProfile()
+          });
+        }
+      } catch (dbErr) {
+        console.warn('MongoDB profile update failed, using demo storage:', dbErr.message);
+      }
+    }
 
-    res.json({ 
+    // Demo file storage update fallback
+    const users = loadDemoUsers();
+    const index = users.findIndex(u => String(u._id) === String(req.user._id) || (req.user.firebaseUid && u.firebaseUid === req.user.firebaseUid));
+    if (index !== -1) {
+      users[index] = {
+        ...users[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      saveDemoUsers(users);
+      const { password, ...publicUser } = users[index];
+      return res.json({
+        message: 'Profile updated successfully',
+        user: publicUser
+      });
+    }
+
+    const updated = {
+      ...(req.user.getPublicProfile ? req.user.getPublicProfile() : req.user),
+      ...updates
+    };
+    delete updated.password;
+    res.json({
       message: 'Profile updated successfully',
-      user: user.getPublicProfile()
+      user: updated
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -81,18 +145,29 @@ router.put('/password', [
 
     const { currentPassword, newPassword } = req.body;
 
-    // Get user with password
-    const user = await User.findById(req.user._id);
-    
-    // Verify current password
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      const user = await User.findById(req.user._id);
+      if (user) {
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+          return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+        user.password = newPassword;
+        await user.save();
+        return res.json({ message: 'Password updated successfully' });
+      }
     }
 
-    // Update password
+    // Demo storage password check
+    const users = loadDemoUsers();
+    const user = users.find(u => String(u._id) === String(req.user._id));
+    if (!user || user.password !== currentPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
     user.password = newPassword;
-    await user.save();
+    user.updatedAt = new Date().toISOString();
+    saveDemoUsers(users);
 
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
@@ -106,23 +181,47 @@ router.put('/password', [
 // @access  Private
 router.post('/profile-image', authMiddleware, async (req, res) => {
   try {
-    // This would integrate with Cloudinary or similar service
-    // For now, we'll just accept a URL
     const { imageUrl } = req.body;
     
     if (!imageUrl) {
       return res.status(400).json({ message: 'Image URL is required' });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { profileImage: imageUrl },
-      { new: true }
-    );
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      try {
+        const user = await User.findByIdAndUpdate(
+          req.user._id,
+          { profileImage: imageUrl },
+          { new: true }
+        );
+        if (user) {
+          return res.json({ 
+            message: 'Profile image updated successfully',
+            user: user.getPublicProfile()
+          });
+        }
+      } catch (err) {
+        console.warn('DB profile-image update failed:', err.message);
+      }
+    }
 
-    res.json({ 
+    const users = loadDemoUsers();
+    const index = users.findIndex(u => String(u._id) === String(req.user._id) || (req.user.firebaseUid && u.firebaseUid === req.user.firebaseUid));
+    if (index !== -1) {
+      users[index].profileImage = imageUrl;
+      users[index].updatedAt = new Date().toISOString();
+      saveDemoUsers(users);
+      const { password, ...publicUser } = users[index];
+      return res.json({ message: 'Profile image updated successfully', user: publicUser });
+    }
+
+    res.json({
       message: 'Profile image updated successfully',
-      user: user.getPublicProfile()
+      user: {
+        ...(req.user.getPublicProfile ? req.user.getPublicProfile() : req.user),
+        profileImage: imageUrl
+      }
     });
   } catch (error) {
     console.error('Update profile image error:', error);
@@ -144,46 +243,74 @@ router.get('/search', authMiddleware, async (req, res) => {
     const searchRegex = new RegExp(q.trim(), 'i');
     const skip = (page - 1) * limit;
 
-    const users = await User.find({
-      $and: [
-        { isActive: true },
-        { _id: { $ne: req.user._id } }, // Exclude current user
-        {
-          $or: [
-            { username: searchRegex },
-            { firstName: searchRegex },
-            { lastName: searchRegex },
-            { email: searchRegex }
-          ]
-        }
-      ]
-    })
-    .select('username firstName lastName profileImage location gardenExperience')
-    .limit(parseInt(limit))
-    .skip(skip)
-    .sort({ username: 1 });
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      const users = await User.find({
+        $and: [
+          { isActive: true },
+          { _id: { $ne: req.user._id } },
+          {
+            $or: [
+              { username: searchRegex },
+              { firstName: searchRegex },
+              { lastName: searchRegex },
+              { email: searchRegex }
+            ]
+          }
+        ]
+      })
+      .select('username firstName lastName profileImage location gardenExperience')
+      .limit(parseInt(limit))
+      .skip(skip)
+      .sort({ username: 1 });
 
-    const total = await User.countDocuments({
-      $and: [
-        { isActive: true },
-        { _id: { $ne: req.user._id } },
-        {
-          $or: [
-            { username: searchRegex },
-            { firstName: searchRegex },
-            { lastName: searchRegex },
-            { email: searchRegex }
-          ]
+      const total = await User.countDocuments({
+        $and: [
+          { isActive: true },
+          { _id: { $ne: req.user._id } },
+          {
+            $or: [
+              { username: searchRegex },
+              { firstName: searchRegex },
+              { lastName: searchRegex },
+              { email: searchRegex }
+            ]
+          }
+        ]
+      });
+
+      return res.json({
+        users,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / limit),
+          total
         }
-      ]
+      });
+    }
+
+    // Demo search fallback
+    const allUsers = loadDemoUsers();
+    const query = q.trim().toLowerCase();
+    const filtered = allUsers.filter(u => 
+      String(u._id) !== String(req.user._id) &&
+      (u.username?.toLowerCase().includes(query) ||
+       u.firstName?.toLowerCase().includes(query) ||
+       u.lastName?.toLowerCase().includes(query) ||
+       u.email?.toLowerCase().includes(query))
+    );
+
+    const paginated = filtered.slice(skip, skip + parseInt(limit)).map(u => {
+      const { password, ...safe } = u;
+      return safe;
     });
 
     res.json({
-      users,
+      users: paginated,
       pagination: {
         current: parseInt(page),
-        pages: Math.ceil(total / limit),
-        total
+        pages: Math.ceil(filtered.length / limit) || 1,
+        total: filtered.length
       }
     });
   } catch (error) {
@@ -197,15 +324,25 @@ router.get('/search', authMiddleware, async (req, res) => {
 // @access  Private
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-      .select('-password -email')
-      .populate('gardens', 'name location images averageRating');
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      const user = await User.findById(req.params.id)
+        .select('-password -email')
+        .populate('gardens', 'name location images averageRating');
 
-    if (!user || !user.isActive) {
+      if (user && user.isActive) {
+        return res.json({ user });
+      }
+    }
+
+    const allUsers = loadDemoUsers();
+    const found = allUsers.find(u => String(u._id) === String(req.params.id));
+    if (!found || found.isActive === false) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ user });
+    const { password, email, ...safeUser } = found;
+    res.json({ user: safeUser });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -217,12 +354,21 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // @access  Private
 router.delete('/account', authMiddleware, async (req, res) => {
   try {
-    // Soft delete - mark as inactive
-    await User.findByIdAndUpdate(req.user._id, { 
-      isActive: false,
-      email: `deleted_${Date.now()}_${req.user.email}`,
-      username: `deleted_${Date.now()}_${req.user.username}`
-    });
+    const isDbConnected = mongoose.connection.readyState === 1;
+    if (isDbConnected) {
+      await User.findByIdAndUpdate(req.user._id, { 
+        isActive: false,
+        email: `deleted_${Date.now()}_${req.user.email}`,
+        username: `deleted_${Date.now()}_${req.user.username}`
+      });
+    }
+
+    const allUsers = loadDemoUsers();
+    const index = allUsers.findIndex(u => String(u._id) === String(req.user._id));
+    if (index !== -1) {
+      allUsers[index].isActive = false;
+      saveDemoUsers(allUsers);
+    }
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

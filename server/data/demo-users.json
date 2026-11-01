@@ -116,7 +116,7 @@
     "gardenExperience": "beginner",
     "isVerified": true,
     "isAdmin": false,
-    "firebaseUid": "3qp0cc9Ufpcal96JK87H70OCcyj2",
+    "firebaseUid": "p1JjqX3yYJQLoUnbYxZRkhC05ll1",
     "createdAt": "2026-07-12T12:20:38.542Z"
   },
   {
@@ -214,7 +214,21 @@
     "gardenExperience": "beginner",
     "isVerified": true,
     "isAdmin": false,
-    "firebaseUid": "google-1784199376440",
+    "firebaseUid": "google-1793527642914",
     "createdAt": "2026-07-16T09:15:37.446Z"
+  },
+  {
+    "_id": "17",
+    "username": "2411cs010349-mohamma665",
+    "email": "2411cs010349@mallareddyuniversity.ac.in",
+    "password": "",
+    "firstName": "2411CS010349-",
+    "lastName": "MOHAMMAD SHAHEBAZ ALI",
+    "profileImage": "https://lh3.googleusercontent.com/a/ACg8ocIiTlN-w8JzkR2PSSjePE62jP1QSmWmsAj9tZPm5fQrLWstQQ=s96-c",
+    "gardenExperience": "beginner",
+    "isVerified": true,
+    "isAdmin": false,
+    "firebaseUid": "HYYLaSVgEdhw9pA5rpny3k2ZExH2",
+    "createdAt": "2026-11-01T10:08:06.124Z"
   }
 ]

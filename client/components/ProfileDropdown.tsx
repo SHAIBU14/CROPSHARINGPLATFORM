@@ -1,6 +1,7 @@
 'use client'
 
 import { User, Mail, MapPin, Calendar, Award } from 'lucide-react'
+import Link from 'next/link'
 
 interface ProfileDropdownProps {
   isOpen: boolean
@@ -13,7 +14,7 @@ interface ProfileDropdownProps {
     location?: {
       city?: string
       state?: string
-    }
+    } | string
     gardenExperience?: string
     isVerified?: boolean
     createdAt?: string
@@ -64,7 +65,9 @@ export default function ProfileDropdown({ isOpen, onClose, user }: ProfileDropdo
           <div className="flex-1">
             <p className="text-xs text-gray-500">Location</p>
             <p className="text-sm text-gray-900">
-              {user?.location?.city && user?.location?.state
+              {typeof user?.location === 'string'
+                ? user.location
+                : user?.location?.city && user?.location?.state
                 ? `${user.location.city}, ${user.location.state}`
                 : 'N/A'}
             </p>
@@ -101,9 +104,13 @@ export default function ProfileDropdown({ isOpen, onClose, user }: ProfileDropdo
 
       {/* Footer */}
       <div className="p-3 border-t bg-gray-50">
-        <button className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <Link
+          href="/profile"
+          onClick={onClose}
+          className="block text-center w-full text-sm text-primary-green hover:text-primary-green-dark font-medium py-1.5 rounded hover:bg-green-50 transition-colors"
+        >
           View Full Profile
-        </button>
+        </Link>
       </div>
     </div>
   )

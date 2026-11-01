@@ -31,6 +31,7 @@ const navigation = [
   { name: 'Community Feed', href: '/feed', icon: Users },
   { name: 'Messages', href: '/messages', icon: MessageCircle },
   { name: 'Map', href: '/map', icon: Map },
+  { name: 'Profile', href: '/profile', icon: User },
 ]
 
 export default function DashboardLayout({
